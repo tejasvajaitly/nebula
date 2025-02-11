@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
+import { redirect } from 'next/navigation'
 
 async function createClerkSupabaseClientSsr() {
   // The `useAuth()` hook is used to access the `getToken()` method
@@ -78,5 +79,5 @@ export async function GET(req: Request) {
         onConflict: 'github_account_id,organization_id' // Join fields into a single string
     });
 
-    return Response.redirect(`http://localhost:3000/dashboard`);
+    redirect(`/dashboard`);
 }
