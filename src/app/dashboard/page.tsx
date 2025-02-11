@@ -117,7 +117,7 @@ async function fetchGithubUserRepos(accessToken: string) {
                 <p>{user.login}</p>
                 <img className="w-10 h-10 rounded-full" src={user.avatar_url} alt="avatar" />
                 <ul>
-                    {user.repos.map((repo: any) => (
+                    {user?.repos?.map((repo: any) => (
                         <li key={repo.id}>{repo.name}</li>
                     ))}
                 </ul>
