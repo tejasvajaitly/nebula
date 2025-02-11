@@ -11,6 +11,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.11.2",
     "@octokit/rest": "^21.1.0",
+    "@supabase/supabase-js": "^2.48.1",
     "next": "15.1.6",
     "openai": "^4.83.0",
     "react": "^19.0.0",

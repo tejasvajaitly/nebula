@@ -1,8 +1,39 @@
 import { Octokit } from "@octokit/rest";
-// import { createClient } from "@supabase/supabase-js";
-// import { currentUser } from "@clerk/nextjs";
+import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@supabase/supabase-js'
 
-// const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+export async function createClerkSupabaseClientSsr() {
+  // The `useAuth()` hook is used to access the `getToken()` method
+  const { getToken, sessionClaims } = await auth()
+
+
+
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        // Get the custom Supabase token from Clerk
+        fetch: async (url, options = {}) => {
+          const clerkToken = await getToken({
+            template: 'supabase',
+          })
+
+          // Insert the Clerk Supabase token into the headers
+          const headers = new Headers(options?.headers)
+          headers.set('Authorization', `Bearer ${clerkToken}`)
+
+          // Now call the default fetch
+          return fetch(url, {
+            ...options,
+            headers,
+          })
+        },
+      },
+    },
+  )
+}
+
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -32,18 +63,20 @@ export async function GET(req: Request) {
     const octokit = new Octokit({ auth: tokenData.access_token });
     const { data: user } = await octokit.rest.users.getAuthenticated();
 
-    // Store in Supabase (Linked to Clerk User)
-    // const clerkUser = await currentUser();
-    // if (clerkUser) {
-    //     await supabase.from("github_tokens").upsert([
-    //         {
-    //             clerk_user_id: clerkUser.id,
-    //             github_user_id: user.id.toString(),
-    //             github_username: user.login,
-    //             access_token: tokenData.access_token,
-    //         },
-    //     ]);
-    // }
+    const client = await createClerkSupabaseClientSsr()
+
+    // Assuming you have a way to extract the organization_id from the JWT
+// Implement this function
+
+    const res =await client.from("github_sessions").upsert([
+        {
+            github_account_id: user.id.toString(),
+
+            session_key: tokenData.access_token,
+        },
+    ], {
+        onConflict: 'github_account_id,organization_id' // Join fields into a single string
+    });
 
     return Response.redirect(`http://localhost:3000/dashboard`);
 }

@@ -8,6 +8,7 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
+  OrganizationSwitcher
 } from '@clerk/nextjs'
 
 const geistSans = Geist({
@@ -43,6 +44,7 @@ export default function RootLayout({
             </SignedOut>
             <SignedIn>
               <UserButton />
+              <OrganizationSwitcher />
             </SignedIn>
           </header>
         {children}
