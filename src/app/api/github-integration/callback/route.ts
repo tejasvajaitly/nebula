@@ -2,7 +2,7 @@ import { Octokit } from "@octokit/rest";
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 
-export async function createClerkSupabaseClientSsr() {
+async function createClerkSupabaseClientSsr() {
   // The `useAuth()` hook is used to access the `getToken()` method
   const { getToken, sessionClaims } = await auth()
 
