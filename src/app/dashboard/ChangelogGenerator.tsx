@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ChangelogGenerator({
   repoId,
@@ -69,11 +71,16 @@ export default function ChangelogGenerator({
         {loading ? "Generating..." : "Generate Changelog"}
       </button>
       {changelog && (
-        <div className="mt-4 border p-4">
-          <h3 className="text-lg font-semibold">Changelog</h3>
-          <pre className="whitespace-pre-wrap">{changelog}</pre>
-        </div>
+        <>
+          <div className="mt-4 border p-4">
+            <h3 className="text-lg font-semibold">Changelog</h3>
+            <pre className="whitespace-pre-wrap">{changelog}</pre>
+          </div>
+        </>
       )}
+      <Markdown className="markdown" remarkPlugins={[remarkGfm]}>
+        {changelog}
+      </Markdown>
     </div>
   );
 }

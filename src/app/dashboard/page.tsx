@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import ChangelogGenerator from "../components/ChangelogGenerator";
+import ChangelogGenerator from "./ChangelogGenerator";
 
 import { useSession, useUser } from "@clerk/nextjs";
 import { createClient } from "@supabase/supabase-js";
