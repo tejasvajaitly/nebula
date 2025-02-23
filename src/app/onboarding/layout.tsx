@@ -1,5 +1,9 @@
 export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <>{children}</>;
+  return (
+    <div className="p-24 flex flex-col justify-start items-center">
+      {children}
+    </div>
+  );
 }
