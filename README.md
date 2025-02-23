@@ -8,3 +8,7 @@
 - [ ] Setup OpenAI to generate changelog
 - [ ] Setup markdown editor and viewer
 - [ ] Add functionality to publish changelog
+
+## Notes and Todos
+
+Organized in [Notion](https://swift-divan-4c4.notion.site/Nebula-1a275c9eb39180be8ec8d85b69f84479?pvs=4) to maintain speed and clarity.
