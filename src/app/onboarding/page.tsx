@@ -11,8 +11,9 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import OrganizationProfile from "./organization-profile";
 
-type OnboardingStep = 1 | 2 | 3;
+export type OnboardingStep = 1 | 2 | 3;
 
 export default function Page() {
   const [activeOnboardingStep, setActiveOnboardingStep] =
@@ -59,42 +60,6 @@ export default function Page() {
         </Link>
       </div>
     </div>
-  );
-}
-
-function OrganizationProfile({
-  activeOnboardingStep,
-  setActiveOnboardingStep,
-}: {
-  activeOnboardingStep: OnboardingStep;
-  setActiveOnboardingStep: (step: OnboardingStep) => void;
-}) {
-  return (
-    <Card
-      onClick={() => setActiveOnboardingStep(1)}
-      className={`w-full text-sm cursor-pointer ${
-        activeOnboardingStep === 1
-          ? "border border-neutral-950 dark:border-neutral-50"
-          : ""
-      }`}
-    >
-      <CardHeader>
-        <CardTitle>1. Organization Profile</CardTitle>
-        <CardDescription>
-          We need to know which organization you want to use to track changelogs
-        </CardDescription>
-      </CardHeader>
-      {activeOnboardingStep === 1 && (
-        <>
-          <CardContent>
-            <p>Card Content</p>
-          </CardContent>
-          <CardFooter>
-            <p>Card Footer</p>
-          </CardFooter>
-        </>
-      )}
-    </Card>
   );
 }
 
