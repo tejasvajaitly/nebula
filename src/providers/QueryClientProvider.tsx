@@ -1,6 +1,11 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useState } from "react";
 
 export const ReactQueryClientProvider = ({
@@ -18,6 +23,11 @@ export const ReactQueryClientProvider = ({
             staleTime: 60 * 1000,
           },
         },
+        queryCache: new QueryCache({
+          onError: (error) => {
+            toast.error(error.message);
+          },
+        }),
       })
   );
   return (

@@ -38,7 +38,7 @@ export async function GET() {
   }
 
   if (data.length === 0) {
-    return Response.json({ userProfiles: [] }, { status: 200 });
+    return Response.json([], { status: 200 });
   }
 
   const userProfilesPromises = data?.map((session) => {
@@ -51,7 +51,7 @@ export async function GET() {
     userProfiles.map((user) => user.json())
   );
 
-  return Response.json({ userProfiles: userProfilesJson }, { status: 200 });
+  return Response.json([...userProfilesJson], { status: 200 });
 }
 
 function fetchUserProfile(token: string) {

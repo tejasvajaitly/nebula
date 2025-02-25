@@ -17,6 +17,10 @@ export default clerkMiddleware(async (auth, req) => {
   if (!userId && isPrivateRoute(req))
     return redirectToSignIn({ returnBackUrl: req.url });
 
+  // If the user isn't signed in and the route is onboarding, redirect to sign-in
+  if (!userId && isOnboardingRoute(req))
+    return redirectToSignIn({ returnBackUrl: req.url });
+
   // Catch users who do not have `onboardingComplete: true` in their publicMetadata
   // Redirect them to the /onboading route to complete onboarding
   if (
