@@ -26,10 +26,6 @@ export default function SelectRepo({
   repoListRefetch: () => void;
   repoListIsFetching: boolean;
 }) {
-  if (!repoList) {
-    return null;
-  }
-
   if (repoListLoading) {
     return (
       <div className="flex flex-col justify-start items-start gap-2">

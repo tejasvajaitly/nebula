@@ -37,6 +37,8 @@ import { Spinner } from "@/components/21dev/spinner";
 import GithubProfile from "./github-profile";
 import SelectRepo from "./select-repo";
 import { DatePicker } from "@/components/ui/date-picker";
+import { ConfettiButton } from "@/components/magicui/confetti";
+import confetti from "canvas-confetti";
 
 export type OnboardingStep = 1 | 2 | 3;
 
@@ -160,6 +162,7 @@ export default function Page() {
         setSelectedRepo={setSelectedRepo}
         repoListRefetch={repoListRefetch}
         repoListIsFetching={repoListIsFetching}
+        selectedGitHubAccountId={selectedGitHubAccountId}
       />
 
       <div className="w-full flex flex-row justify-start items-center gap-2 mt-8">
@@ -181,10 +184,11 @@ function GenerateChangelog({
   repoList,
   repoListLoading,
   repoListError,
-  selectedRepo,
   setSelectedRepo,
   repoListRefetch,
   repoListIsFetching,
+  selectedGitHubAccountId,
+  selectedRepo,
 }: {
   activeOnboardingStep: OnboardingStep;
   setActiveOnboardingStep: (step: OnboardingStep) => void;
@@ -195,7 +199,94 @@ function GenerateChangelog({
   setSelectedRepo: (repo: any) => void;
   repoListRefetch: () => void;
   repoListIsFetching: boolean;
+  selectedGitHubAccountId: string | undefined;
 }) {
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+
+  const fetchChangelog = async () => {
+    const response = await fetch(
+      `/api/changelog/generate?repo_id=${selectedRepo?.id}&repo_name=${
+        selectedRepo?.name
+      }&repo_owner=${
+        selectedRepo?.owner.login
+      }&date_from=${dateFrom?.toISOString()}&date_to=${dateTo?.toISOString()}&github_account_id=${selectedGitHubAccountId}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch changelog");
+    }
+
+    const responseTwo = await fetch("/api/complete-onboarding", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!responseTwo.ok) {
+      throw new Error("Failed to fetch changelog");
+    }
+
+    const data = await responseTwo.json();
+    return data.changelog || "AI failed to generate changelog.";
+  };
+
+  const { isLoading, data, error, refetch, isFetching, isSuccess } = useQuery({
+    queryKey: [
+      "changelog",
+      selectedRepo?.id,
+      selectedRepo?.name,
+      selectedRepo?.owner.login,
+      dateFrom,
+      dateTo,
+      selectedGitHubAccountId,
+    ],
+    queryFn: fetchChangelog,
+    enabled: false,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (isSuccess) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.7 },
+      });
+    }
+  }, [isSuccess]);
+
+  if (isSuccess) {
+    return (
+      <Card
+        onClick={() => setActiveOnboardingStep(3)}
+        className={`w-full text-sm cursor-pointer ${
+          activeOnboardingStep === 3
+            ? "border border-neutral-950 dark:border-neutral-50"
+            : ""
+        }`}
+      >
+        <CardHeader>
+          <CardTitle className="flex flex-row justify-between items-center">
+            3. Generate Changelog{" "}
+            <div className="top-0 right-0 rounded-full bg-green-600 dark:bg-green-500 text-white dark:text-zinc-950 p-0.5">
+              <Check width={14} height={14} />
+            </div>
+          </CardTitle>
+          <CardDescription>
+            We will generate a changelog for you based on your repositories.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href="/dashboard">
+            <Button className="w-full">🎉 Go to Dashboard</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card
       onClick={() => setActiveOnboardingStep(3)}
@@ -227,10 +318,18 @@ function GenerateChangelog({
             <p className="text-sm text-muted-foreground">
               Select a date range to generate the changelog.
             </p>
-            <DatePicker />
-            <DatePicker />
-            <Button className="w-full flex flex-row gap-2 mt-2">
-              <p>Generate Changelog</p>
+            <DatePicker date={dateFrom} setDate={setDateFrom} label="From" />
+            <DatePicker date={dateTo} setDate={setDateTo} label="To" />
+            <Button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="w-full flex flex-row gap-2 mt-2"
+            >
+              {isFetching ? (
+                <Spinner className="w-4 h-4" />
+              ) : (
+                <p>Generate Changelog</p>
+              )}
             </Button>
           </CardFooter>
         </>
