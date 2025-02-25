@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import OrganizationProfile from "./organization-profile";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Check, CloudAlert, Github } from "lucide-react";
 import ConnectGithubButton from "./connect-github-button";
@@ -35,6 +36,7 @@ import {
 import { Spinner } from "@/components/21dev/spinner";
 import GithubProfile from "./github-profile";
 import SelectRepo from "./select-repo";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export type OnboardingStep = 1 | 2 | 3;
 
@@ -87,6 +89,8 @@ export default function Page() {
     data: repoList,
     isLoading: repoListLoading,
     isError: repoListError,
+    refetch: repoListRefetch,
+    isFetching: repoListIsFetching,
   } = useGitHubRepositories(selectedGitHubAccountId);
 
   useEffect(() => {
@@ -154,6 +158,8 @@ export default function Page() {
         repoListError={repoListError}
         selectedRepo={selectedRepo}
         setSelectedRepo={setSelectedRepo}
+        repoListRefetch={repoListRefetch}
+        repoListIsFetching={repoListIsFetching}
       />
 
       <div className="w-full flex flex-row justify-start items-center gap-2 mt-8">
@@ -177,6 +183,8 @@ function GenerateChangelog({
   repoListError,
   selectedRepo,
   setSelectedRepo,
+  repoListRefetch,
+  repoListIsFetching,
 }: {
   activeOnboardingStep: OnboardingStep;
   setActiveOnboardingStep: (step: OnboardingStep) => void;
@@ -185,6 +193,8 @@ function GenerateChangelog({
   repoListError: boolean;
   selectedRepo: any;
   setSelectedRepo: (repo: any) => void;
+  repoListRefetch: () => void;
+  repoListIsFetching: boolean;
 }) {
   return (
     <Card
@@ -198,20 +208,30 @@ function GenerateChangelog({
       <CardHeader>
         <CardTitle>3. Generate Changelog</CardTitle>
         <CardDescription>
-          We will generate a changelog for you based on your repositories
+          We will generate a changelog for you based on your repositories.
         </CardDescription>
       </CardHeader>
       {activeOnboardingStep === 3 && (
         <>
           <CardContent>
-            {/* <SelectRepo
+            <SelectRepo
               setSelectedRepo={setSelectedRepo}
               repoList={repoList}
-              selectedRepo={selectedRepo}
-            /> */}
+              repoListLoading={repoListLoading}
+              repoListError={repoListError}
+              repoListRefetch={repoListRefetch}
+              repoListIsFetching={repoListIsFetching}
+            />
           </CardContent>
-          <CardFooter>
-            <p>Card Footer</p>
+          <CardFooter className="flex flex-col justify-start items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              Select a date range to generate the changelog.
+            </p>
+            <DatePicker />
+            <DatePicker />
+            <Button className="w-full flex flex-row gap-2 mt-2">
+              <p>Generate Changelog</p>
+            </Button>
           </CardFooter>
         </>
       )}
