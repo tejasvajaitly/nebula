@@ -1,8 +1,4 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 
 export default function Layout({
@@ -11,8 +7,7 @@ export default function Layout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <SidebarTrigger />
+      <SidebarInset className="p-4">
         <main>{children}</main>
       </SidebarInset>
     </SidebarProvider>

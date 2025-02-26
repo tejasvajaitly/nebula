@@ -5,39 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOrganization } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-
-function useGithubProfiles() {
-  return useQuery({
-    queryKey: ["githubProfiles"],
-    queryFn: async () => {
-      const response = await fetch("/api/github-integration/user-profiles");
-      if (!response.ok) {
-        throw new Error("Failed to fetch Github profiles");
-      }
-      return response.json();
-    },
-    refetchOnWindowFocus: false,
-    retry: false,
-  });
-}
-
-function useGitHubRepositories(userId: string | undefined) {
-  return useQuery({
-    queryKey: ["repos", userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      const response = await fetch(
-        `/api/github-integration/repository?accountId=${userId}`
-      );
-      return response.json();
-    },
-    refetchOnWindowFocus: false,
-    enabled: false,
-  });
-}
+import { useGithubProfiles, useGitHubRepositories } from "@/hooks/githubHooks";
+import Editor from "@/lexical/editor";
 
 function Page() {
   const [changelog, setChangelog] = useState("");
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [selectedRepository, setSelectedRepository] = useState<any>(null);
   const { organization } = useOrganization();
   const queryClient = useQueryClient();
 
@@ -53,26 +27,25 @@ function Page() {
     isLoading: githubRepositoriesLoading,
     isError: githubRepositoriesError,
     refetch: githubRepositoriesRefetch,
-  } = useGitHubRepositories(githubProfiles?.[0]?.id);
+  } = useGitHubRepositories(selectedProfile?.id);
 
-  // Fetch changelogs using TanStack Query
   const {
-    data,
-    error,
-    isLoading,
+    data: changelogData,
+    error: changelogError,
+    isLoading: changelogLoading,
     refetch: changelogRefetch,
   } = useQuery({
-    queryKey: ["changelogs", githubRepositories?.repos[19].id],
+    queryKey: ["changelogs", selectedRepository?.id],
     queryFn: async () => {
       const response = await fetch(
-        `/api/changelog/fetch-changelog?repo_id=${githubRepositories?.repos[19].id}`
+        `/api/changelog/fetch-changelog?repo_id=${selectedRepository?.id}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch changelogs");
       }
       return response.json();
     },
-    enabled: !!githubRepositories?.repos[19].id, // Only run the query if organization ID is available
+    enabled: false, // Only run the query if organization ID is available
   });
 
   useEffect(() => {
@@ -83,35 +56,58 @@ function Page() {
   }, [organization, queryClient]);
 
   useEffect(() => {
-    if (data) {
+    if (changelogData) {
       setChangelog(
-        data.changelogs.map((log: any) => log.description).join("\n\n")
+        changelogData.changelogs.map((log: any) => log.description).join("\n\n")
       );
     }
-  }, [data]);
+  }, [changelogData]);
 
   return (
-    <div className="flex flex-row justify-between items-start gap-28">
-      <Card className="h-[600px] overflow-y-auto w-[800px] ">
-        <CardHeader>
-          <CardTitle>Changelog</CardTitle>
-        </CardHeader>
-        <CardContent className="bg-red-500 h-full">
-          <Button onClick={() => githubProfilesRefetch()}>
-            Fetch Github Profiles
-          </Button>
-          <Button onClick={() => githubRepositoriesRefetch()}>
-            Fetch Github Repositories
-          </Button>
-          <Button onClick={() => changelogRefetch()}>Fetch Changelog</Button>
+    <div className="flex flex-col justify-between items-start gap-28 h-[500px] w-full rounded-md p-8">
+      <Button onClick={() => changelogRefetch()}>Generate Changelog</Button>
 
-          {/* <div>{JSON.stringify(githubProfiles?.[0])}</div> */}
+      {changelogLoading && <p>Loading...</p>}
+      {changelogError && <p>Error: {changelogError.message}</p>}
 
-          <div className="mt-8 bg-red-700">
-            {githubRepositories?.repos[19].name}
+      <div>
+        {githubProfiles?.map((profile: any) => (
+          <div
+            key={profile.id}
+            onClick={() => setSelectedProfile(profile)}
+            className={`cursor-pointer  p-2 rounded-md ${
+              selectedProfile?.id === profile.id ? "bg-gray-100" : ""
+            }`}
+          >
+            <h1>{profile.name}</h1>
+            <p>{profile.url}</p>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
+      {githubProfilesLoading && <p>Loading...</p>}
+      {githubProfilesError && <p>Error: {githubProfilesError}</p>}
+      <div>
+        {githubRepositories &&
+          githubRepositories?.repos.map((repo: any) => (
+            <div
+              key={repo.id}
+              onClick={() => setSelectedRepository(repo)}
+              className={`cursor-pointer  p-2 rounded-md ${
+                selectedRepository?.id === repo.id ? "bg-gray-100" : ""
+              }`}
+            >
+              <h1>{repo.name}</h1>
+              <p>{repo.url}</p>
+            </div>
+          ))}
+        {changelog && (
+          <Editor
+            initialContent={changelogData.changelogs
+              .map((log: any) => log.description)
+              .join("\n\n")}
+          />
+        )}
+      </div>
     </div>
   );
 }

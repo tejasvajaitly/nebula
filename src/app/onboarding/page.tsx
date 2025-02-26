@@ -14,63 +14,16 @@ import { useEffect, useState } from "react";
 import OrganizationProfile from "./organization-profile";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Badge } from "@/components/ui/badge";
-import { Check, CloudAlert, Github } from "lucide-react";
-import ConnectGithubButton from "./connect-github-button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useUser,
-  useOrganizationList,
-  useAuth,
-  useOrganization,
-} from "@clerk/nextjs";
+import { Check, Github } from "lucide-react";
+import { useOrganization } from "@clerk/nextjs";
 import { Spinner } from "@/components/21dev/spinner";
 import GithubProfile from "./github-profile";
 import SelectRepo from "./select-repo";
 import { DatePicker } from "@/components/ui/date-picker";
-import { ConfettiButton } from "@/components/magicui/confetti";
 import confetti from "canvas-confetti";
+import { useGithubProfiles, useGitHubRepositories } from "@/hooks/githubHooks";
 
 export type OnboardingStep = 1 | 2 | 3;
-
-function useGithubProfiles() {
-  return useQuery({
-    queryKey: ["githubProfiles"],
-    queryFn: async () => {
-      const response = await fetch("/api/github-integration/user-profiles");
-      if (!response.ok) {
-        throw new Error("Failed to fetch Github profiles");
-      }
-      return response.json();
-    },
-    refetchOnWindowFocus: false,
-    retry: false,
-  });
-}
-
-function useGitHubRepositories(userId: string | undefined) {
-  return useQuery({
-    queryKey: ["repos", userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      const response = await fetch(
-        `/api/github-integration/repository?accountId=${userId}`
-      );
-      return response.json();
-    },
-    refetchOnWindowFocus: false,
-    enabled: !!userId,
-  });
-}
 
 export default function Page() {
   const [activeOnboardingStep, setActiveOnboardingStep] =
