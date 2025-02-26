@@ -47,6 +47,8 @@ export async function GET() {
 
   const userProfiles = await Promise.all(userProfilesPromises);
 
+  console.log(userProfiles);
+
   const userProfilesJson = await Promise.all(
     userProfiles.map((user) => user.json())
   );
