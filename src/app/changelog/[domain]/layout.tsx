@@ -1,14 +1,17 @@
+import { use } from "react";
+
 export default async function Layout({
   params,
   children,
 }: {
-  params: { domain: string };
+  params: Promise<{ domain: string }>;
   children: React.ReactNode;
 }) {
-  const domain = decodeURIComponent((await params).domain);
+  const { domain } = use(params);
+  const decodedDomain = decodeURIComponent(domain);
   return (
     <div>
-      <p>{domain}</p>
+      <p>{decodedDomain}</p>
       {children}
     </div>
   );
