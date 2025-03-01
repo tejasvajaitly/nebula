@@ -23,7 +23,13 @@ export default clerkMiddleware(async (auth, req) => {
     subDomain = hostname?.replace(`.localhost:3000`, "");
   }
 
-  if (subDomain === "localhost:3000" || process.env.NEXT_PUBLIC_ROOT_DOMAIN) {
+  console.log("subDomain", subDomain);
+
+  if (
+    subDomain === "localhost:3000" ||
+    subDomain === process.env.NEXT_PUBLIC_ROOT_DOMAIN
+  ) {
+    console.log("subDomain is localhost:3000 or root domain");
     return NextResponse.next();
   }
 
