@@ -48,7 +48,7 @@ import { NextResponse } from "next/server";
 // import { readSiteDomain } from "./utils/actions/sites/read-site-domain";
 
 // Define the routes that require authentication
-const isProtectedRoute = createRouteMatcher(["/cms(.*)"]);
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 
 // Main middleware function
 export default clerkMiddleware(async (auth, req) => {
