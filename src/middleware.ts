@@ -49,11 +49,20 @@ import { NextResponse } from "next/server";
 
 // Define the routes that require authentication
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
+const isAPIRoute = createRouteMatcher(["/api(.*)"]);
 
 // Main middleware function
 export default clerkMiddleware(async (auth, req) => {
   // Check if the route is protected and enforce authentication if it is
   if (isProtectedRoute(req)) await auth.protect();
+  if (isOnboardingRoute(req)) await auth.protect();
+
+  const { userId, sessionClaims } = await auth();
+
+  if (userId && isOnboardingRoute(req)) {
+    return NextResponse.next();
+  }
 
   const url = req.nextUrl;
   const pathname = url.pathname;
@@ -69,6 +78,18 @@ export default clerkMiddleware(async (auth, req) => {
   } else {
     // In development, handle localhost case
     currentHost = hostname?.replace(`.localhost:3000`, "");
+  }
+
+  if (
+    userId &&
+    !sessionClaims?.metadata?.onboardingComplete &&
+    !isAPIRoute(req) &&
+    (currentHost === "localhost:3000" ||
+      currentHost === process.env.NEXT_PUBLIC_ROOT_DOMAIN)
+  ) {
+    console.log("redirecting to onboarding");
+    const onboardingUrl = new URL("/onboarding", req.url);
+    return NextResponse.redirect(onboardingUrl);
   }
 
   if (
