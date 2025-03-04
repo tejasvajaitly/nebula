@@ -9,7 +9,8 @@ export default async function middleware(req: NextRequest) {
   const previewDomain = process.env.NEXT_PUBLIC_PREVIEW_DOMAIN;
   const url = req.nextUrl;
   const host = req.headers.get("host");
-  const subdomain = host?.replace(`.${rootDomain}`, "");
+  let subdomain = host?.replace(`.${previewDomain}`, "");
+  subdomain = host?.replace(`.${rootDomain}`, "");
 
   if (subdomain !== rootDomain && subdomain !== previewDomain) {
     return NextResponse.rewrite(
