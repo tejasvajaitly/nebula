@@ -1,7 +1,7 @@
 "use client";
 
 import TextStyle from "@tiptap/extension-text-style";
-import { EditorProvider, useCurrentEditor } from "@tiptap/react";
+import { EditorProvider, JSONContent, useCurrentEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import React from "react";
 import { Button } from "@/components/ui/button";
@@ -239,7 +239,11 @@ const content = `
 
 `;
 
-export default () => {
+export default function Tiptap({
+  onChange,
+}: {
+  onChange: (content: JSONContent) => void;
+}) {
   return (
     <EditorProvider
       slotBefore={<MenuBar />}
@@ -251,6 +255,9 @@ export default () => {
             "prose prose-zinc prose-sm sm:prose-base lg:prose-lg xl:prose-xl m-5 focus:outline-none",
         },
       }}
+      onUpdate={({ editor }) => {
+        onChange(editor.getJSON());
+      }}
     ></EditorProvider>
   );
-};
+}
