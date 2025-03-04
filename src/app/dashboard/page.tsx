@@ -1,3 +1,10 @@
+import Tiptap from "@/components/editor/tiptap";
+
 export default function Page() {
-  return <div>Dashboard</div>;
+  return (
+    <div>
+      Dashboard
+      <Tiptap />
+    </div>
+  );
 }
