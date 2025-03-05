@@ -2,10 +2,10 @@
 - [x] text editor
 - [x] auth, org creation
 - [x] db init
-- [ ] github oauth
+- [x] github oauth
+- [ ] onboarding to create first changelog
 - [ ] generate changelog from github repo using openai
 - [ ] save changelog to db
 - [ ] publish changelog site
 - [ ] render changelog site
-- [ ] onboarding to create first changelog
 - [ ] dashboard to manage changelog
