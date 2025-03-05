@@ -74,7 +74,7 @@ export default function Page() {
   }
 
   return (
-    <div className="flex flex-col justify-start items-center w-[450px] gap-4">
+    <div className="flex flex-col justify-start items-center w-full sm:w-[450px] gap-4">
       <div className="w-full flex flex-row justify-start items-center">
         <Image
           src="/logo.svg"
