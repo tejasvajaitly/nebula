@@ -1,6 +1,6 @@
 - [x] middleware support to subdomain
 - [x] text editor
-- [ ] auth, org creation
+- [x] auth, org creation
 - [ ] github oauth
 - [ ] generate changelog from github repo using openai
 - [ ] save changelog to db

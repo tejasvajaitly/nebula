@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 export const config = {
   matcher: ["/((?!api/|_next/|_static/|_vercel|[\\w-]+\\.\\w+).*)"],
 };
 
-export default async function middleware(req: NextRequest) {
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
+const isAPIRoute = createRouteMatcher(["/api(.*)"]);
+
+export default clerkMiddleware(async (auth, req: NextRequest) => {
+  if (isProtectedRoute(req)) await auth.protect();
+  if (isOnboardingRoute(req)) await auth.protect();
+
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
   const previewDomain = process.env.NEXT_PUBLIC_PREVIEW_DOMAIN!;
   const url = req.nextUrl;
@@ -30,4 +38,4 @@ export default async function middleware(req: NextRequest) {
   }
 
   return NextResponse.next();
-}
+});
