@@ -3,9 +3,9 @@
 - [x] auth, org creation
 - [x] db init
 - [x] github oauth
-- [ ] onboarding to create first changelog
-- [ ] generate changelog from github repo using openai
-- [ ] save changelog to db
+- [x] onboarding to create first changelog
+- [x] generate changelog from github repo using openai
+- [x] save changelog to db
 - [ ] publish changelog site
 - [ ] render changelog site
 - [ ] dashboard to manage changelog
