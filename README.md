@@ -1,5 +1,5 @@
 - [x] middleware support to subdomain
-- [ ] auth, org creation
+- [x] auth, org creation
 - [ ] onboarding to create first changelog
 - [ ] text editor
 - [ ] db init
