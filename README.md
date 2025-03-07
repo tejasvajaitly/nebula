@@ -1,6 +1,6 @@
 - [x] middleware support to subdomain
 - [x] auth, org creation
-- [ ] onboarding to create first changelog
+- [x] onboarding to create first changelog
 - [ ] text editor
 - [ ] db init
 - [ ] github oauth
