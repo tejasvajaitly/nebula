@@ -28,13 +28,13 @@ export async function GET(request: Request) {
     });
 
     const userResponse = await octokit.rest.users.getAuthenticated();
-    const userData: GitHubUser = userResponse.data;
+    const userProfile: GitHubUser = userResponse.data;
 
     const supabase = await createClerkSupabaseClient();
     const res = await supabase.from("github_sessions").upsert(
       [
         {
-          github_account_id: userData.id.toString(),
+          github_account_id: userProfile.id.toString(),
           session_key: token,
         },
       ],
