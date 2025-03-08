@@ -6,6 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Github } from "lucide-react";
 
 export default function GithubCard({
   activeStep,
@@ -28,11 +30,23 @@ export default function GithubCard({
         <CardDescription>Card Description</CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Card Content</p>
+        <ConnectGithub />
       </CardContent>
       <CardFooter>
         <p>Card Footer</p>
       </CardFooter>
     </Card>
+  );
+}
+
+function ConnectGithub() {
+  const connectGitHub = () => {
+    window.location.href = "/api/github-integration/start";
+  };
+  return (
+    <Button onClick={connectGitHub} className="w-full flex gap-2">
+      <Github className="w-4 h-4" />
+      Connect GitHub
+    </Button>
   );
 }

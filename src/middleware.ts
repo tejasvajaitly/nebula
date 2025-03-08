@@ -7,6 +7,7 @@ export const config = {
 
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
+const isPublicRoute = createRouteMatcher(["/", "/github-integration-error"]);
 const isAPIRoute = createRouteMatcher(["/api(.*)"]);
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
@@ -39,7 +40,8 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   if (
     userId &&
     !sessionClaims?.metadata?.onboardingComplete &&
-    !isAPIRoute(req)
+    !isAPIRoute(req) &&
+    !isPublicRoute(req)
   ) {
     console.log("redirecting to onboarding");
     const onboardingUrl = new URL("/onboarding", req.url);
