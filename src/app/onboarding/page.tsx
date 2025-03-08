@@ -5,15 +5,57 @@ import GithubCard from "./github-card";
 import ChangelogCard from "./changelog-card";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useOrganization } from "@clerk/nextjs";
+import { useGithubProfiles } from "@/hooks/github";
+import { Spinner } from "@/components/21dev/spinner";
 
 export default function Page() {
   const [activeStep, setActiveStep] = useState<number>(1);
+  const [activeGithubProfile, setActiveGithubProfile] = useState<
+    string | undefined
+  >(undefined);
+
+  const { data: githubProfiles, isPending: githubProfilesIsPending } =
+    useGithubProfiles();
+
+  const { isLoaded: isActiveOrgLoaded, organization: activeOrg } =
+    useOrganization();
+
+  useEffect(() => {
+    if (activeGithubProfile) {
+      setActiveStep(3);
+      return;
+    }
+    if (githubProfiles?.length >= 1) {
+      setActiveGithubProfile(githubProfiles[0].id.toString());
+      setActiveStep(3);
+      return;
+    }
+    if (activeOrg) {
+      setActiveStep(2);
+      return;
+    }
+  }, [activeGithubProfile, githubProfiles, activeOrg]);
+
+  if (!isActiveOrgLoaded || githubProfilesIsPending) {
+    return (
+      <div className="flex  justify-center items-center h-screen w-full">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col justify-start items-center w-full sm:w-[450px] gap-4">
       <Header />
       <OrgCard activeStep={activeStep} setActiveStep={setActiveStep} />
-      <GithubCard activeStep={activeStep} setActiveStep={setActiveStep} />
+      <GithubCard
+        activeStep={activeStep}
+        setActiveStep={setActiveStep}
+        activeGithubProfile={activeGithubProfile}
+        setActiveGithubProfile={setActiveGithubProfile}
+      />
       <ChangelogCard activeStep={activeStep} setActiveStep={setActiveStep} />
       <Footer />
     </div>
