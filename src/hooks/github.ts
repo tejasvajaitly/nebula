@@ -16,3 +16,23 @@ async function fetchProfile() {
   }
   return response.json();
 }
+
+export function useGithubRepositories(activeGithubProfile: string | undefined) {
+  return useQuery({
+    queryKey: ["github", "repositories", "profileId", activeGithubProfile],
+    queryFn: () => fetchAllRepositories(activeGithubProfile),
+    enabled: !!activeGithubProfile,
+  });
+}
+
+async function fetchAllRepositories(activeGithubProfile: string | undefined) {
+  if (!activeGithubProfile) throw new Error("Failed to fetch repositories");
+  const response = await fetch(
+    `/api/github-integration/repositories/?githubProfileId=${activeGithubProfile}`
+  );
+  if (!response.ok) {
+    const errorMessage = await response.json();
+    throw new Error(errorMessage.error || "Failed to fetch repositories");
+  }
+  return response.json();
+}

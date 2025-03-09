@@ -56,7 +56,11 @@ export default function Page() {
         activeGithubProfile={activeGithubProfile}
         setActiveGithubProfile={setActiveGithubProfile}
       />
-      <ChangelogCard activeStep={activeStep} setActiveStep={setActiveStep} />
+      <ChangelogCard
+        activeStep={activeStep}
+        setActiveStep={setActiveStep}
+        activeGithubProfile={activeGithubProfile}
+      />
       <Footer />
     </div>
   );
