@@ -129,3 +129,8 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.lucide-lock-keyhole {
+  height: 12px;
+  width: 12px;
+}

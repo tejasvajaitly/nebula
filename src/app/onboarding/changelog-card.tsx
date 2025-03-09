@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import {
   Command,
   CommandEmpty,
@@ -26,7 +27,22 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/21dev/spinner";
 import { useGithubRepositories } from "@/hooks/github";
-import { CloudAlert, RotateCcw, Check, ChevronsUpDown } from "lucide-react";
+import {
+  CloudAlert,
+  RotateCcw,
+  Check,
+  ChevronsUpDown,
+  LockKeyhole,
+  Clock,
+  Dot,
+} from "lucide-react";
+import {
+  formatDistanceToNow,
+  format,
+  isThisYear,
+  differenceInDays,
+} from "date-fns";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 
 type Repositories =
@@ -155,6 +171,7 @@ function SelectRepositories({
             <CommandGroup>
               {repositories.map((repository) => (
                 <CommandItem
+                  className="flex flex-row justify-between"
                   key={repository.name}
                   value={repository.name}
                   onSelect={(currentValue) => {
@@ -162,13 +179,38 @@ function SelectRepositories({
                     setOpen(false);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === repository.name ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {repository.name}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-row gap-2 items-center justify-start">
+                      <LockKeyhole
+                        className={repository.private ? `` : `opacity-0`}
+                      />
+                      <p>{repository.name}</p>
+                    </div>
+
+                    <div className="flex flex-row gap-2 items-center justify-start">
+                      <Clock className="opacity-0" />
+                      <p className="text-xs text-muted-foreground">
+                        {formatUpdatedAt(repository.updated_at)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-row gap-4">
+                    <div className="flex flex-row gap-2 items-center">
+                      <Avatar className="w-4 h-4">
+                        <AvatarImage src={repository.owner.avatar_url} />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
+                      <p>{repository.owner.login}</p>
+                    </div>
+
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === repository.name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -177,4 +219,18 @@ function SelectRepositories({
       </PopoverContent>
     </Popover>
   );
+}
+
+function formatUpdatedAt(updatedAt: string | null) {
+  if (!updatedAt) return "";
+  const date = new Date(updatedAt);
+  const daysDifference = differenceInDays(new Date(), date);
+
+  if (daysDifference < 7) {
+    return formatDistanceToNow(date, { addSuffix: true });
+  } else if (daysDifference < 365 && isThisYear(date)) {
+    return format(date, "MMMM d");
+  } else {
+    return format(date, "MM/dd/yy");
+  }
 }
