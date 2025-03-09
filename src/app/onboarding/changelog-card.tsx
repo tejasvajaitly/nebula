@@ -90,6 +90,10 @@ export default function ChangelogCard({
           repositoriesIsError={repositoriesIsError}
           refetchRepositories={refetchRepositories}
         />
+        <SelectCommit
+          activeGithubProfile={activeGithubProfile}
+          activeRepository={activeRepository}
+        />
       </CardContent>
       <CardFooter>
         <p>Card Footer</p>
@@ -229,139 +233,140 @@ function SelectRepository({
 function SelectCommit({
   activeGithubProfile,
   activeRepository,
-  activeCommit,
-  setActiveCommit,
-  commits,
-  commitsIsPending,
-  commitsIsError,
-  refetchCommits,
-  activeGithubUsername,
-}: {
-  activeGithubProfile: string | undefined;
+}: // activeCommit,
+// setActiveCommit,
+// commits,
+// commitsIsPending,
+// commitsIsError,
+// refetchCommits,
+{
+  activeGithubProfile: GitHubUser | undefined;
   activeRepository: string | undefined;
-  activeCommit: string | undefined;
-  setActiveCommit: (id: string) => void;
-  commits: Repositories;
-  commitsIsPending: boolean;
-  commitsIsError: boolean;
-  refetchCommits: () => void;
-  activeGithubUsername: string | undefined;
+  // activeCommit: string | undefined;
+  // setActiveCommit: (id: string) => void;
+  // commits: Repositories;
+  // commitsIsPending: boolean;
+  // commitsIsError: boolean;
+  // refetchCommits: () => void;
 }) {
   const [open, setOpen] = React.useState(false);
 
   async function fetchCommits() {
     const data = await fetch(
-      `/api/github-integration/commits?githubProfileId=${activeGithubProfile}&owner=${activeGithubUsername}&repo=${activeRepository}`
+      `/api/github-integration/commits?githubProfileId=${activeGithubProfile?.id}&owner=${activeGithubProfile?.login}&repo=${activeRepository}`
     );
   }
 
-  if (commitsIsPending) {
-    return (
-      <div className="flex flex-col justify-start items-start gap-2">
-        Select GitHub Repository
-        <Skeleton className="w-full h-6" />
-      </div>
-    );
-  }
-  if (commitsIsError) {
-    return (
-      <div className="flex flex-col justify-start items-start gap-2">
-        Select GitHub Repository
-        <div className="flex flex-row justify-start items-center gap-2 text-destructive">
-          <p>Error fetching Github profiles</p>
-          <CloudAlert className="w-4 h-4" />
-        </div>
-        <Button
-          className="w-full flex flex-row gap-2"
-          onClick={refetchCommits}
-          disabled={commitsIsPending}
-        >
-          {commitsIsPending ? (
-            <Spinner className="w-4 h-4" />
-          ) : (
-            <RotateCcw className="w-4 h-4" />
-          )}
-          Retry
-        </Button>
-      </div>
-    );
-  }
+  // if (commitsIsPending) {
+  //   return (
+  //     <div className="flex flex-col justify-start items-start gap-2">
+  //       Select GitHub Repository
+  //       <Skeleton className="w-full h-6" />
+  //     </div>
+  //   );
+  // }
+  // if (commitsIsError) {
+  //   return (
+  //     <div className="flex flex-col justify-start items-start gap-2">
+  //       Select GitHub Repository
+  //       <div className="flex flex-row justify-start items-center gap-2 text-destructive">
+  //         <p>Error fetching Github profiles</p>
+  //         <CloudAlert className="w-4 h-4" />
+  //       </div>
+  //       <Button
+  //         className="w-full flex flex-row gap-2"
+  //         onClick={refetchCommits}
+  //         disabled={commitsIsPending}
+  //       >
+  //         {commitsIsPending ? (
+  //           <Spinner className="w-4 h-4" />
+  //         ) : (
+  //           <RotateCcw className="w-4 h-4" />
+  //         )}
+  //         Retry
+  //       </Button>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {activeRepository
-            ? commits.find((repository) => repository.name === activeRepository)
-                ?.name
-            : "Select repository..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full min-w-[var(--radix-popover-trigger-width)] p-0">
-        <Command>
-          <CommandInput placeholder="Search framework..." />
-          <CommandList>
-            <CommandEmpty>No repository found.</CommandEmpty>
-            <CommandGroup>
-              {commits.map((repository) => (
-                <CommandItem
-                  className="flex flex-row justify-between"
-                  key={repository.name}
-                  value={repository.name}
-                  onSelect={(currentValue) => {
-                    setActiveCommit(
-                      currentValue === activeRepository ? "" : currentValue
-                    );
-                    setOpen(false);
-                  }}
-                >
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-row gap-2 items-center justify-start">
-                      <LockKeyhole
-                        className={repository.private ? `` : `opacity-0`}
-                      />
-                      <p>{repository.name}</p>
-                    </div>
+    <>
+      <Button onClick={fetchCommits}>get all commits</Button>
+    </>
+    // <Popover open={open} onOpenChange={setOpen}>
+    //   <PopoverTrigger asChild>
+    //     <Button
+    //       variant="outline"
+    //       role="combobox"
+    //       aria-expanded={open}
+    //       className="w-full justify-between"
+    //     >
+    //       {activeRepository
+    //         ? commits.find((repository) => repository.name === activeRepository)
+    //             ?.name
+    //         : "Select repository..."}
+    //       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+    //     </Button>
+    //   </PopoverTrigger>
+    //   <PopoverContent className="w-full min-w-[var(--radix-popover-trigger-width)] p-0">
+    //     <Command>
+    //       <CommandInput placeholder="Search framework..." />
+    //       <CommandList>
+    //         <CommandEmpty>No repository found.</CommandEmpty>
+    //         <CommandGroup>
+    //           {commits.map((repository) => (
+    //             <CommandItem
+    //               className="flex flex-row justify-between"
+    //               key={repository.name}
+    //               value={repository.name}
+    //               onSelect={(currentValue) => {
+    //                 setActiveCommit(
+    //                   currentValue === activeRepository ? "" : currentValue
+    //                 );
+    //                 setOpen(false);
+    //               }}
+    //             >
+    //               <div className="flex flex-col gap-2">
+    //                 <div className="flex flex-row gap-2 items-center justify-start">
+    //                   <LockKeyhole
+    //                     className={repository.private ? `` : `opacity-0`}
+    //                   />
+    //                   <p>{repository.name}</p>
+    //                 </div>
 
-                    <div className="flex flex-row gap-2 items-center justify-start">
-                      <Clock className="opacity-0" />
-                      <p className="text-xs text-muted-foreground">
-                        {formatUpdatedAt(repository.updated_at)}
-                      </p>
-                    </div>
-                  </div>
+    //                 <div className="flex flex-row gap-2 items-center justify-start">
+    //                   <Clock className="opacity-0" />
+    //                   <p className="text-xs text-muted-foreground">
+    //                     {formatUpdatedAt(repository.updated_at)}
+    //                   </p>
+    //                 </div>
+    //               </div>
 
-                  <div className="flex flex-row gap-4">
-                    <div className="flex flex-row gap-2 items-center">
-                      <Avatar className="w-4 h-4">
-                        <AvatarImage src={repository.owner.avatar_url} />
-                        <AvatarFallback>CN</AvatarFallback>
-                      </Avatar>
-                      <p>{repository.owner.login}</p>
-                    </div>
+    //               <div className="flex flex-row gap-4">
+    //                 <div className="flex flex-row gap-2 items-center">
+    //                   <Avatar className="w-4 h-4">
+    //                     <AvatarImage src={repository.owner.avatar_url} />
+    //                     <AvatarFallback>CN</AvatarFallback>
+    //                   </Avatar>
+    //                   <p>{repository.owner.login}</p>
+    //                 </div>
 
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        activeRepository === repository.name
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    //                 <Check
+    //                   className={cn(
+    //                     "mr-2 h-4 w-4",
+    //                     activeRepository === repository.name
+    //                       ? "opacity-100"
+    //                       : "opacity-0"
+    //                   )}
+    //                 />
+    //               </div>
+    //             </CommandItem>
+    //           ))}
+    //         </CommandGroup>
+    //       </CommandList>
+    //     </Command>
+    //   </PopoverContent>
+    // </Popover>
   );
 }
 
