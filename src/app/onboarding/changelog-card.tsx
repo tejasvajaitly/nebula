@@ -1,13 +1,3 @@
-import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
-import { useState } from "react";
-import { useGithubRepositories } from "@/hooks/github";
-import {
-  Select,
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-  SelectItem,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -16,10 +6,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import * as React from "react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CloudAlert, RotateCcw } from "lucide-react";
 import { Spinner } from "@/components/21dev/spinner";
+import { useGithubRepositories } from "@/hooks/github";
+import { CloudAlert, RotateCcw, Check, ChevronsUpDown } from "lucide-react";
+import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 
 type Repositories =
   RestEndpointMethodTypes["repos"]["listForAuthenticatedUser"]["response"]["data"];
@@ -90,6 +98,8 @@ function SelectRepositories({
   repositoriesIsError: boolean;
   refetchRepositories: () => void;
 }) {
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState("");
   if (repositoriesIsPending) {
     return (
       <div className="flex flex-col justify-start items-start gap-2">
@@ -123,23 +133,48 @@ function SelectRepositories({
   }
 
   return (
-    <div className="flex flex-col justify-start items-start gap-2">
-      Select GitHub Repository
-      <Select onValueChange={setActiveRepository}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select a repository" />
-        </SelectTrigger>
-        <SelectContent>
-          {repositories?.map((repository: any) => (
-            <SelectItem
-              key={repository.id.toString()}
-              value={repository.id.toString()}
-            >
-              {repository.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {value
+            ? repositories.find((repository) => repository.name === value)?.name
+            : "Select repository..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full min-w-[var(--radix-popover-trigger-width)] p-0">
+        <Command>
+          <CommandInput placeholder="Search framework..." />
+          <CommandList>
+            <CommandEmpty>No repository found.</CommandEmpty>
+            <CommandGroup>
+              {repositories.map((repository) => (
+                <CommandItem
+                  key={repository.name}
+                  value={repository.name}
+                  onSelect={(currentValue) => {
+                    setValue(currentValue === value ? "" : currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === repository.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {repository.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
