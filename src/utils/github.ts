@@ -1,11 +1,4 @@
-import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 import { Octokit } from "@octokit/rest";
-
-type GitHubUser =
-  RestEndpointMethodTypes["users"]["getAuthenticated"]["response"]["data"];
-
-type Repositories =
-  RestEndpointMethodTypes["repos"]["listForAuthenticatedUser"]["response"]["data"];
 
 export async function getUserProfile(token: string) {
   const octokit = new Octokit({
@@ -13,13 +6,13 @@ export async function getUserProfile(token: string) {
   });
 
   const userResponse = await octokit.rest.users.getAuthenticated();
-  const userProfile: GitHubUser = userResponse.data;
+  const userProfile = userResponse.data;
   return userProfile;
 }
 
 export async function getUserProfiles(tokens: string[]) {
   const userProfilesPromises = tokens.map((token) => getUserProfile(token));
-  const userProfiles: GitHubUser[] = await Promise.all(userProfilesPromises);
+  const userProfiles = await Promise.all(userProfilesPromises);
   return userProfiles;
 }
 
@@ -28,7 +21,7 @@ export async function getUserRepositories(token: string) {
     auth: token,
   });
 
-  const repositories: Repositories = await octokit.paginate(
+  const repositories = await octokit.paginate(
     octokit.rest.repos.listForAuthenticatedUser,
     {
       per_page: 100,
@@ -36,4 +29,22 @@ export async function getUserRepositories(token: string) {
   );
 
   return repositories;
+}
+
+export async function getUserCommits(
+  token: string,
+  owner: string,
+  repo: string
+) {
+  const octokit = new Octokit({
+    auth: token,
+  });
+
+  const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
+    owner,
+    repo,
+    per_page: 100,
+  });
+
+  return commits;
 }

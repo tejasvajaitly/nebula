@@ -2,7 +2,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -32,8 +31,8 @@ export default function GithubCard({
 }: {
   activeStep: number;
   setActiveStep: (step: number) => void;
-  activeGithubProfile: string | undefined;
-  setActiveGithubProfile: (id: string) => void;
+  activeGithubProfile: GitHubUser | undefined;
+  setActiveGithubProfile: (profile: GitHubUser | undefined) => void;
 }) {
   const { data, isError, isPending, refetch } = useGithubProfiles();
 
@@ -106,7 +105,7 @@ export default function GithubCard({
                 {
                   data?.find(
                     (profile: GitHubUser) =>
-                      profile.id.toString() === activeGithubProfile
+                      profile.id === activeGithubProfile.id
                   )?.login
                 }
               </Badge>
@@ -130,10 +129,13 @@ export default function GithubCard({
               <CardContent>
                 <Select
                   onValueChange={(value) => {
-                    setActiveGithubProfile(value);
+                    const tmp = data.find(
+                      (profile) => profile.id.toString() === value
+                    );
+                    setActiveGithubProfile(tmp);
                     setActiveStep(3);
                   }}
-                  value={activeGithubProfile}
+                  value={activeGithubProfile?.id.toString()}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a GitHub account from the list" />

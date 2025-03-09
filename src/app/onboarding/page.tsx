@@ -9,11 +9,15 @@ import { useState, useEffect } from "react";
 import { useOrganization } from "@clerk/nextjs";
 import { useGithubProfiles } from "@/hooks/github";
 import { Spinner } from "@/components/21dev/spinner";
+import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+
+type GitHubUser =
+  RestEndpointMethodTypes["users"]["getAuthenticated"]["response"]["data"];
 
 export default function Page() {
   const [activeStep, setActiveStep] = useState<number>(1);
   const [activeGithubProfile, setActiveGithubProfile] = useState<
-    string | undefined
+    GitHubUser | undefined
   >(undefined);
 
   const { data: githubProfiles, isPending: githubProfilesIsPending } =
@@ -27,8 +31,8 @@ export default function Page() {
       setActiveStep(3);
       return;
     }
-    if (githubProfiles?.length >= 1) {
-      setActiveGithubProfile(githubProfiles[0].id.toString());
+    if (githubProfiles && githubProfiles?.length >= 1) {
+      setActiveGithubProfile(githubProfiles[0]);
       setActiveStep(3);
       return;
     }

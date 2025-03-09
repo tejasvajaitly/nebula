@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+
+type GitHubUser =
+  RestEndpointMethodTypes["users"]["getAuthenticated"]["response"]["data"];
 
 export function useGithubProfiles() {
-  return useQuery({
+  return useQuery<GitHubUser[]>({
     queryKey: ["github", "profiles"],
     queryFn: fetchProfile,
     retry: 1,
