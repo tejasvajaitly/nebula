@@ -57,3 +57,31 @@ export async function getGithubSessionToken(githubProfileID: string) {
   };
   return data;
 }
+
+export async function createChangelogProject(repo: string, repoId: string) {
+  const supabase = await createClerkSupabaseClient();
+  const { data, error } = await supabase.from("changelog_sites").insert({
+    repository_name: repo,
+    github_repository_id: repoId,
+  });
+
+  return data;
+}
+
+export async function updateChangelog(
+  repoId: string,
+  changelog: string,
+  latestCommitSha: string,
+  latestCommitDate: string
+) {
+  const supabase = await createClerkSupabaseClient();
+  const { data, error } = await supabase.from("changelogs").insert([
+    {
+      github_repository_id: repoId,
+      description: changelog,
+      git_commit_sha: latestCommitSha,
+      commit_date: latestCommitDate,
+    },
+  ]);
+  return data;
+}

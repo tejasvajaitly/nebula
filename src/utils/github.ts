@@ -48,3 +48,23 @@ export async function getUserCommits(
 
   return commits;
 }
+
+export async function getUserCommitsSince(
+  token: string,
+  owner: string,
+  repo: string,
+  baselineDate: string
+) {
+  const octokit = new Octokit({
+    auth: token,
+  });
+
+  const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
+    owner,
+    repo,
+    since: baselineDate,
+    per_page: 100,
+  });
+
+  return commits;
+}
