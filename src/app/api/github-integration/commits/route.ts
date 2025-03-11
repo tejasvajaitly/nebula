@@ -14,6 +14,6 @@ export async function GET(request: Request) {
   }
 
   const token = await getGithubSessionToken(profileID);
-  const repositories = await getUserCommits(token.session_key, owner, repo);
-  return Response.json(repositories);
+  const commits = await getUserCommits(token.session_key, owner, repo);
+  return Response.json(commits);
 }

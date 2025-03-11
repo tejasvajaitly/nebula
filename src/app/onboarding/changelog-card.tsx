@@ -20,12 +20,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import * as React from "react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/21dev/spinner";
-import { useGithubRepositories } from "@/hooks/github";
+import { useGithubRepositories, useGithubCommits } from "@/hooks/github";
 import {
   CloudAlert,
   RotateCcw,
@@ -33,6 +34,8 @@ import {
   ChevronsUpDown,
   LockKeyhole,
   Clock,
+  GitCommitHorizontal,
+  User,
 } from "lucide-react";
 import {
   formatDistanceToNow,
@@ -49,6 +52,9 @@ type Repositories =
 type GitHubUser =
   RestEndpointMethodTypes["users"]["getAuthenticated"]["response"]["data"];
 
+type Commits =
+  RestEndpointMethodTypes["repos"]["listCommits"]["response"]["data"];
+
 export default function ChangelogCard({
   activeStep,
   setActiveStep,
@@ -62,12 +68,36 @@ export default function ChangelogCard({
     undefined
   );
 
+  const [activeCommit, setActiveCommit] = useState<string | undefined>(
+    undefined
+  );
+
   const {
     data: repositories,
     isPending: repositoriesIsPending,
     isError: repositoriesIsError,
     refetch: refetchRepositories,
   } = useGithubRepositories(activeGithubProfile?.id.toString());
+
+  const {
+    data: commits,
+    isPending: commitsIsPending,
+    isError: commitsIsError,
+    refetch: refetchCommits,
+  } = useGithubCommits(
+    activeGithubProfile?.id,
+    activeGithubProfile?.login,
+    activeRepository
+  );
+
+  const defaultBranch = useMemo(() => {
+    if (!repositories || !activeRepository) return "";
+    return (
+      repositories.find((repo) => repo.name === activeRepository)
+        ?.default_branch || ""
+    );
+  }, [repositories, activeRepository]);
+
   return (
     <Card
       onClick={() => setActiveStep(3)}
@@ -91,8 +121,13 @@ export default function ChangelogCard({
           refetchRepositories={refetchRepositories}
         />
         <SelectCommit
-          activeGithubProfile={activeGithubProfile}
-          activeRepository={activeRepository}
+          activeCommit={activeCommit}
+          setActiveCommit={setActiveCommit}
+          commits={commits}
+          commitsIsPending={commitsIsPending}
+          commitsIsError={commitsIsError}
+          refetchCommits={refetchCommits}
+          defaultBranch={defaultBranch}
         />
       </CardContent>
       <CardFooter>
@@ -112,7 +147,7 @@ function SelectRepository({
 }: {
   activeRepository: string | undefined;
   setActiveRepository: (id: string) => void;
-  repositories: Repositories;
+  repositories: Repositories | undefined;
   repositoriesIsPending: boolean;
   repositoriesIsError: boolean;
   refetchRepositories: () => void;
@@ -161,7 +196,7 @@ function SelectRepository({
           className="w-full justify-between"
         >
           {activeRepository
-            ? repositories.find(
+            ? repositories?.find(
                 (repository) => repository.name === activeRepository
               )?.name
             : "Select repository..."}
@@ -174,7 +209,7 @@ function SelectRepository({
           <CommandList>
             <CommandEmpty>No repository found.</CommandEmpty>
             <CommandGroup>
-              {repositories.map((repository) => (
+              {repositories?.map((repository) => (
                 <CommandItem
                   className="flex flex-row justify-between"
                   key={repository.name}
@@ -231,146 +266,122 @@ function SelectRepository({
 }
 
 function SelectCommit({
-  activeGithubProfile,
-  activeRepository,
-}: // activeCommit,
-// setActiveCommit,
-// commits,
-// commitsIsPending,
-// commitsIsError,
-// refetchCommits,
-{
-  activeGithubProfile: GitHubUser | undefined;
-  activeRepository: string | undefined;
-  // activeCommit: string | undefined;
-  // setActiveCommit: (id: string) => void;
-  // commits: Repositories;
-  // commitsIsPending: boolean;
-  // commitsIsError: boolean;
-  // refetchCommits: () => void;
+  activeCommit,
+  setActiveCommit,
+  commits,
+  commitsIsPending,
+  commitsIsError,
+  refetchCommits,
+  defaultBranch,
+}: {
+  activeCommit: string | undefined;
+  setActiveCommit: (id: string) => void;
+  commits: Commits | undefined;
+  commitsIsPending: boolean;
+  commitsIsError: boolean;
+  refetchCommits: () => void;
+  defaultBranch: string;
 }) {
   const [open, setOpen] = React.useState(false);
 
-  async function fetchCommits() {
-    const data = await fetch(
-      `/api/github-integration/commits?githubProfileId=${activeGithubProfile?.id}&owner=${activeGithubProfile?.login}&repo=${activeRepository}`
+  if (commitsIsPending) {
+    return (
+      <div className="flex flex-col justify-start items-start gap-2">
+        Select Commit
+        <Skeleton className="w-full h-6" />
+      </div>
+    );
+  }
+  if (commitsIsError) {
+    return (
+      <div className="flex flex-col justify-start items-start gap-2">
+        Select Commit
+        <div className="flex flex-row justify-start items-center gap-2 text-destructive">
+          <p>Error fetching commits</p>
+          <CloudAlert className="w-4 h-4" />
+        </div>
+        <Button
+          className="w-full flex flex-row gap-2"
+          onClick={refetchCommits}
+          disabled={commitsIsPending}
+        >
+          {commitsIsPending ? (
+            <Spinner className="w-4 h-4" />
+          ) : (
+            <RotateCcw className="w-4 h-4" />
+          )}
+          Retry
+        </Button>
+      </div>
     );
   }
 
-  // if (commitsIsPending) {
-  //   return (
-  //     <div className="flex flex-col justify-start items-start gap-2">
-  //       Select GitHub Repository
-  //       <Skeleton className="w-full h-6" />
-  //     </div>
-  //   );
-  // }
-  // if (commitsIsError) {
-  //   return (
-  //     <div className="flex flex-col justify-start items-start gap-2">
-  //       Select GitHub Repository
-  //       <div className="flex flex-row justify-start items-center gap-2 text-destructive">
-  //         <p>Error fetching Github profiles</p>
-  //         <CloudAlert className="w-4 h-4" />
-  //       </div>
-  //       <Button
-  //         className="w-full flex flex-row gap-2"
-  //         onClick={refetchCommits}
-  //         disabled={commitsIsPending}
-  //       >
-  //         {commitsIsPending ? (
-  //           <Spinner className="w-4 h-4" />
-  //         ) : (
-  //           <RotateCcw className="w-4 h-4" />
-  //         )}
-  //         Retry
-  //       </Button>
-  //     </div>
-  //   );
-  // }
-
   return (
-    <>
-      <Button onClick={fetchCommits}>get all commits</Button>
-    </>
-    // <Popover open={open} onOpenChange={setOpen}>
-    //   <PopoverTrigger asChild>
-    //     <Button
-    //       variant="outline"
-    //       role="combobox"
-    //       aria-expanded={open}
-    //       className="w-full justify-between"
-    //     >
-    //       {activeRepository
-    //         ? commits.find((repository) => repository.name === activeRepository)
-    //             ?.name
-    //         : "Select repository..."}
-    //       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-    //     </Button>
-    //   </PopoverTrigger>
-    //   <PopoverContent className="w-full min-w-[var(--radix-popover-trigger-width)] p-0">
-    //     <Command>
-    //       <CommandInput placeholder="Search framework..." />
-    //       <CommandList>
-    //         <CommandEmpty>No repository found.</CommandEmpty>
-    //         <CommandGroup>
-    //           {commits.map((repository) => (
-    //             <CommandItem
-    //               className="flex flex-row justify-between"
-    //               key={repository.name}
-    //               value={repository.name}
-    //               onSelect={(currentValue) => {
-    //                 setActiveCommit(
-    //                   currentValue === activeRepository ? "" : currentValue
-    //                 );
-    //                 setOpen(false);
-    //               }}
-    //             >
-    //               <div className="flex flex-col gap-2">
-    //                 <div className="flex flex-row gap-2 items-center justify-start">
-    //                   <LockKeyhole
-    //                     className={repository.private ? `` : `opacity-0`}
-    //                   />
-    //                   <p>{repository.name}</p>
-    //                 </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {activeCommit
+            ? commits?.find((commit) => commit.sha === activeCommit)?.sha
+            : "Select commit..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full min-w-[var(--radix-popover-trigger-width)] p-0">
+        <Command>
+          <CommandInput placeholder="Search framework..." />
+          <CommandList>
+            <CommandEmpty>No commit found.</CommandEmpty>
+            <CommandGroup>
+              {commits?.map((commit) => (
+                <CommandItem
+                  className="flex flex-col items-start py-4"
+                  key={commit.sha}
+                  value={commit.sha}
+                  onSelect={(currentValue) => {
+                    setActiveCommit(
+                      currentValue === activeCommit ? "" : currentValue
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  <div className="flex flex-row justify-between items-center w-full text-xs">
+                    <div className="flex flex-row justify-start items-center w-[60%] gap-2">
+                      <GitCommitHorizontal />
 
-    //                 <div className="flex flex-row gap-2 items-center justify-start">
-    //                   <Clock className="opacity-0" />
-    //                   <p className="text-xs text-muted-foreground">
-    //                     {formatUpdatedAt(repository.updated_at)}
-    //                   </p>
-    //                 </div>
-    //               </div>
+                      <p className="truncate font-bold">{commit.sha}</p>
+                    </div>
+                    <div>
+                      {formatUpdatedAt(commit?.commit?.committer?.date)}
+                    </div>
+                  </div>
 
-    //               <div className="flex flex-row gap-4">
-    //                 <div className="flex flex-row gap-2 items-center">
-    //                   <Avatar className="w-4 h-4">
-    //                     <AvatarImage src={repository.owner.avatar_url} />
-    //                     <AvatarFallback>CN</AvatarFallback>
-    //                   </Avatar>
-    //                   <p>{repository.owner.login}</p>
-    //                 </div>
+                  <div className="flex flex-row justify-between items-center w-full text-xs font-bold">
+                    {commit.commit.message}
+                  </div>
 
-    //                 <Check
-    //                   className={cn(
-    //                     "mr-2 h-4 w-4",
-    //                     activeRepository === repository.name
-    //                       ? "opacity-100"
-    //                       : "opacity-0"
-    //                   )}
-    //                 />
-    //               </div>
-    //             </CommandItem>
-    //           ))}
-    //         </CommandGroup>
-    //       </CommandList>
-    //     </Command>
-    //   </PopoverContent>
-    // </Popover>
+                  <div className="flex flex-row justify-between items-center w-full text-xs">
+                    <div className="flex flex-row justify-start items-center  gap-2">
+                      <User />
+                      <p>{commit.commit.committer?.name}</p>
+                    </div>
+                    <Badge variant="secondary">{defaultBranch}</Badge>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
-function formatUpdatedAt(updatedAt: string | null) {
+function formatUpdatedAt(updatedAt: string | null | undefined) {
   if (!updatedAt) return "";
   const date = new Date(updatedAt);
   const daysDifference = differenceInDays(new Date(), date);
