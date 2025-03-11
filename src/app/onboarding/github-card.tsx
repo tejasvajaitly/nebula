@@ -18,6 +18,7 @@ import { Github, CloudAlert, RotateCcw, Check } from "lucide-react";
 import { useGithubProfiles } from "@/hooks/github";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useOrganization } from "@clerk/nextjs";
 import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 
 type GitHubUser =
@@ -35,6 +36,8 @@ export default function GithubCard({
   setActiveGithubProfile: (profile: GitHubUser | undefined) => void;
 }) {
   const { data, isError, isPending, refetch } = useGithubProfiles();
+
+  const { organization: currentOrg } = useOrganization();
 
   if (isPending) {
     return (
@@ -88,10 +91,16 @@ export default function GithubCard({
 
   return (
     <Card
-      onClick={() => setActiveStep(2)}
+      onClick={() => {
+        if (currentOrg) setActiveStep(2);
+      }}
       className={`w-full text-sm cursor-pointer ${
         activeStep === 2
           ? `border border-neutral-950 dark:border-neutral-50`
+          : ``
+      } ${
+        currentOrg === undefined || currentOrg === null
+          ? `cursor-not-allowed`
           : ``
       }`}
     >

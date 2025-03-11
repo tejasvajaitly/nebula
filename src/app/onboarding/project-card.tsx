@@ -20,13 +20,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import * as React from "react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/21dev/spinner";
-import { useGithubRepositories, useGithubCommits } from "@/hooks/github";
+import {
+  useGithubRepositories,
+  useGithubCommits,
+  useInitializeProject,
+} from "@/hooks/github";
 import {
   CloudAlert,
   RotateCcw,
@@ -55,7 +62,7 @@ type GitHubUser =
 type Commits =
   RestEndpointMethodTypes["repos"]["listCommits"]["response"]["data"];
 
-export default function ChangelogCard({
+export default function ProjectCard({
   activeStep,
   setActiveStep,
   activeGithubProfile,
@@ -64,6 +71,9 @@ export default function ChangelogCard({
   setActiveStep: (step: number) => void;
   activeGithubProfile: GitHubUser | undefined;
 }) {
+  const { user } = useUser();
+  const router = useRouter();
+
   const [activeRepository, setActiveRepository] = useState<string | undefined>(
     undefined
   );
@@ -98,60 +108,119 @@ export default function ChangelogCard({
     );
   }, [repositories, activeRepository]);
 
-  const initProject = async () => {
-    const response = await fetch("/api/changelog/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        owner: activeGithubProfile?.login,
-        repo: activeRepository,
-        repoId: repositories
-          ?.find((repo) => repo.name === activeRepository)
-          ?.id.toString(),
-        baselineDate: commits?.find((commit) => commit.sha === activeCommit)
-          ?.commit.committer?.date,
-        profileID: activeGithubProfile?.id,
-      }),
-    });
-  };
+  const {
+    mutate,
+    isSuccess: initializeProjectIsSuccess,
+    isPending: initializeProjectIsPending,
+  } = useInitializeProject(
+    activeGithubProfile,
+    activeRepository,
+    repositories,
+    commits,
+    activeCommit
+  );
+
+  useEffect(() => {
+    if (initializeProjectIsSuccess) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.7 },
+      });
+    }
+  }, [initializeProjectIsSuccess]);
+
+  if (initializeProjectIsSuccess) {
+    return (
+      <Card
+        onClick={() => setActiveStep(3)}
+        className={`w-full text-sm cursor-pointer ${
+          activeStep === 3
+            ? `border border-neutral-950 dark:border-neutral-50`
+            : ``
+        }`}
+      >
+        <CardHeader>
+          <CardTitle className="flex flex-row justify-between items-center">
+            3. Generate Changelog
+            <div className="top-0 right-0 rounded-full bg-green-600 dark:bg-green-500 text-white dark:text-zinc-950 p-0.5">
+              <Check width={14} height={14} />
+            </div>
+          </CardTitle>
+          <CardDescription>
+            We will generate a changelog for you based on your repositories.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            className="w-full"
+            onClick={async () => {
+              await user?.reload();
+              router.push("/dashboard");
+            }}
+          >
+            🎉 Go to Dashboard
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card
-      onClick={() => setActiveStep(3)}
+      onClick={() => {
+        if (activeGithubProfile) setActiveStep(3);
+      }}
       className={`w-full text-sm cursor-pointer ${
         activeStep === 3
           ? `border border-neutral-950 dark:border-neutral-50`
           : ``
-      }`}
+      } ${activeGithubProfile === undefined ? `cursor-not-allowed` : ``}`}
     >
       <CardHeader>
-        <CardTitle>Card Title</CardTitle>
-        <CardDescription>Card Description</CardDescription>
+        <CardTitle>3. Generate Changelog</CardTitle>
+        <CardDescription>
+          We will generate a changelog for you based on your repositories.
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <SelectRepository
-          activeRepository={activeRepository}
-          setActiveRepository={setActiveRepository}
-          repositories={repositories}
-          repositoriesIsPending={repositoriesIsPending}
-          repositoriesIsError={repositoriesIsError}
-          refetchRepositories={refetchRepositories}
-        />
-        <SelectCommit
-          activeCommit={activeCommit}
-          setActiveCommit={setActiveCommit}
-          commits={commits}
-          commitsIsPending={commitsIsPending}
-          commitsIsError={commitsIsError}
-          refetchCommits={refetchCommits}
-          defaultBranch={defaultBranch}
-        />
-      </CardContent>
-      <CardFooter>
-        <Button onClick={initProject}>Initialize Project</Button>
-      </CardFooter>
+      {activeStep === 3 && (
+        <>
+          <CardContent className="flex flex-col gap-4">
+            <SelectRepository
+              activeRepository={activeRepository}
+              setActiveRepository={setActiveRepository}
+              repositories={repositories}
+              repositoriesIsPending={repositoriesIsPending}
+              repositoriesIsError={repositoriesIsError}
+              refetchRepositories={refetchRepositories}
+            />
+            {activeRepository && (
+              <SelectCommit
+                activeCommit={activeCommit}
+                setActiveCommit={setActiveCommit}
+                commits={commits}
+                commitsIsPending={commitsIsPending}
+                commitsIsError={commitsIsError}
+                refetchCommits={refetchCommits}
+                defaultBranch={defaultBranch}
+              />
+            )}
+          </CardContent>
+          <CardFooter>
+            <Button
+              disabled={initializeProjectIsPending}
+              className="w-full"
+              onClick={() => mutate()}
+            >
+              {initializeProjectIsPending ? (
+                <Spinner className="w-4 h-4" />
+              ) : (
+                <p> Initialize Project</p>
+              )}
+            </Button>
+          </CardFooter>
+        </>
+      )}
     </Card>
   );
 }
@@ -224,7 +293,7 @@ function SelectRepository({
       </PopoverTrigger>
       <PopoverContent className="w-full min-w-[var(--radix-popover-trigger-width)] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Search repository..." />
           <CommandList>
             <CommandEmpty>No repository found.</CommandEmpty>
             <CommandGroup>
@@ -306,7 +375,6 @@ function SelectCommit({
   if (commitsIsPending) {
     return (
       <div className="flex flex-col justify-start items-start gap-2">
-        Select Commit
         <Skeleton className="w-full h-6" />
       </div>
     );
@@ -352,7 +420,7 @@ function SelectCommit({
       </PopoverTrigger>
       <PopoverContent className="w-full min-w-[var(--radix-popover-trigger-width)] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Search commit..." />
           <CommandList>
             <CommandEmpty>No commit found.</CommandEmpty>
             <CommandGroup>

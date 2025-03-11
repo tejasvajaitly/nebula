@@ -2,7 +2,7 @@
 
 import OrgCard from "./org-card";
 import GithubCard from "./github-card";
-import ChangelogCard from "./changelog-card";
+import ProjectCard from "./project-card";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -60,7 +60,7 @@ export default function Page() {
         activeGithubProfile={activeGithubProfile}
         setActiveGithubProfile={setActiveGithubProfile}
       />
-      <ChangelogCard
+      <ProjectCard
         activeStep={activeStep}
         setActiveStep={setActiveStep}
         activeGithubProfile={activeGithubProfile}
