@@ -98,6 +98,25 @@ export default function ChangelogCard({
     );
   }, [repositories, activeRepository]);
 
+  const initProject = async () => {
+    const response = await fetch("/api/changelog/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        owner: activeGithubProfile?.login,
+        repo: activeRepository,
+        repoId: repositories
+          ?.find((repo) => repo.name === activeRepository)
+          ?.id.toString(),
+        baselineDate: commits?.find((commit) => commit.sha === activeCommit)
+          ?.commit.committer?.date,
+        profileID: activeGithubProfile?.id,
+      }),
+    });
+  };
+
   return (
     <Card
       onClick={() => setActiveStep(3)}
@@ -131,7 +150,7 @@ export default function ChangelogCard({
         />
       </CardContent>
       <CardFooter>
-        <p>Card Footer</p>
+        <Button onClick={initProject}>Initialize Project</Button>
       </CardFooter>
     </Card>
   );

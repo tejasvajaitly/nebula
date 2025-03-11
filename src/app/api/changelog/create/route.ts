@@ -10,9 +10,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { owner, repo, repoId, baselineDate, profileID } = body;
   if (!profileID || !owner || !repo || !baselineDate || !repoId) {
-    return Response.json({
-      error: "Something went wrong while fetching repository commits!",
-    });
+    throw new Error();
   }
 
   await createChangelogProject(repo, repoId);
